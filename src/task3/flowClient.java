@@ -4,9 +4,8 @@ import java.io.IOException;
 import java.net.Socket;
 import java.nio.ByteBuffer;
 import java.text.*;
-import java.util.*;
 
-public class congestionClient {
+public class flowClient {
     public static byte[] toHeader(int seqNum, int ackNum, int ack, int sf, int rwnd) {
         ByteBuffer buffer = ByteBuffer.allocate(12);
         buffer.putInt(seqNum);
@@ -27,39 +26,28 @@ public class congestionClient {
         return new int[] { seqNum, ackNum, ack, sf, rwnd };
     }
 
+    // 1,2,4,8
     public static void main(String[] args) throws IOException {
-        Socket clientSocket = new Socket("localhost", 5001);
+        Socket clientSocket = new Socket("localhost", 5000);
         int recvBufferSize = 2;
-        int windowSize = 4 * recvBufferSize;
+        int windowSize = 1;
         clientSocket.setReceiveBufferSize(recvBufferSize);
 
         DecimalFormat df = new DecimalFormat("#0.000");
 
-        Stack<Integer> window = new Stack<>();
-
-        window.push(8);
-        window.push(4);
-        window.push(2);
-        window.push(1);
-
         int seqNum = 0;
+
         int expectedAckNum = 0;
 
         String data = "Sample Message to test the connection";
         int dataLen = data.length();
 
-        long timeout = 2;
-        long StartTime = System.nanoTime();
+        long timeout = 2; // in seconds
         long startTime = System.currentTimeMillis();
+        long StartTime = System.nanoTime();
         double Avg_RTT = 0.2;
 
         while (expectedAckNum < dataLen) {
-
-            if (!window.empty())
-                windowSize = window.pop();
-
-            if (window.empty())
-                windowSize++;
 
             long RTT_startTime = System.nanoTime();
 
@@ -87,6 +75,10 @@ public class congestionClient {
             EstimatedRTT = (1 - alpha) * EstimatedRTT + alpha * SampleRTT;
 
             Avg_RTT = EstimatedRTT;
+
+            int[] headerFields = fromHeader(header);
+            seqNum = headerFields[0];
+
 
             int[] result = fromHeader(ackHeader);
 
