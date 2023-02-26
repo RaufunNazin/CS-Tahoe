@@ -1,4 +1,4 @@
-package task1;
+package task2;
 
 import java.io.ByteArrayOutputStream;
 import java.io.IOException;
@@ -40,6 +40,7 @@ public class Server {
             int receiveBufferSize = 12;
             clientSocket.setReceiveBufferSize(receiveBufferSize);
             int expectedSeqNum = 0;
+            int ackNum = 0;
             ByteArrayOutputStream receivedData = new ByteArrayOutputStream();
 
             while (true) {
@@ -47,7 +48,6 @@ public class Server {
                 clientSocket.getInputStream().read(header);
                 int[] headerFields = fromHeader(header);
                 int seqNum = headerFields[0];
-                int ackNum = headerFields[1];
                 int rwnd = headerFields[4];
                 System.out.println("\nSeq Num: " + seqNum + "\nWindow Size: " + rwnd + "\nString sent: ");
 
@@ -76,7 +76,7 @@ public class Server {
             }
 
             String receivedDataStr = receivedData.toString(StandardCharsets.UTF_8);
-            System.out.println(receivedDataStr + "\n");
+            System.out.println(receivedDataStr);
 
             clientSocket.close();
             serverSocket.close();
